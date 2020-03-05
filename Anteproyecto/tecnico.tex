@@ -28,7 +28,7 @@
 
 \begin{center}
   \vspace{4cm}
-  {\color{white} \Huge \textbf{Paralelismo de Datos en el Intercomunicador intercomTM}}
+  {\color{white} \Huge \textbf{Mezclador en Red para el Intercomunicador intercomTM}}
 \end{center}
 
 \Large
@@ -60,7 +60,7 @@
 
 \vspace{0.95cm}
 \begin{tabular}{ll}
-  ~~~~~~~~~ & Paralelismo de Datos, Audio, Intercomunicador, \\
+  ~~~~~~~~~ & Paralelismo de Tareas, Audio, Intercomunicador, \\
   ~~~~~~~~~ & Procesamiento en Tiempo Real
 \end{tabular}
 
@@ -95,25 +95,48 @@ Multimedia~\cite{intercomTM}, y posee las siguientes características:
 
 \section{Objetivos y justificación}
 \label{sec:objetivos}
-El objetivo de este TFG es mejorar la implementación actual de
-intercomTM, aprovechando el paralelismo de
-datos~\cite{pacheco2011introduction}. Básicamente, se trata de
-aprovechar las posibilidades multicore de la mayoría de las
-computadoras actuales para incrementar el desempeño de intercomTM
-(por ejemplo, permitiendo mayores tasa de muestreo en dispositivos con
-poca potencia computacional, o aumentando las tasas de
-compresión). Más concretamente, los objetivos que se desean alcanzar
-son:
+El objetivo de este TFG es diseñar e implementar un mezclador de audio
+para el intercomunicador intercomTM. Con la funcionalidad actual es
+posible que dos o más usuarios de intercomTM puedan comunicarse entre
+sí, lanzando varias instancias de intercomTM, una para cada posible
+pareja de usuarios. Sin embargo, esta solución presentaría dos
+inconvenientes:
 \begin{enumerate}
-\item Reimplementar intercomTM usando el paradigma de programación de
-  paralelismo de datos, que básicamente consiste en aplicar el
-  algoritmo actualmente usado en la versión secuencial sobre bloques
-  de datos, de forma concurrente. Esto permitirá aprovechar un número
-  de cores de nuestro dispositivo superior a 1 (si los hubiera).
-\item Maximizar el balanceo de la carga de trabajo~\cite{workload}
-  entre los diferentes cores, en función de los diferentes parámetros
-  de funcionamiento que intercomTM posee.
+\item El sistema operativo debería permitir que al menos dos instancias
+  de intercomTM usen el hardware de audio simultaneamente. Este es un
+  requerimiento que no siempre puede cumplirse.
+\item Los usuarios enviarían tantas copias del stream de audio como
+  interlocutores hay en la red. Esto significa que la redundancia de
+  datos en el enlace de salida de los usuarios de intercomTM podría
+  ser alta.
 \end{enumerate}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=5cm]{comparativa}
+  \end{center}
+  \caption{Flujo de datos entre intercomunicadores ($I$), cuando no se
+    usa (izquerda) y sí se usa (derecha) un mezclador ($M$).}
+  \label{fig:comparativa}
+\end{figure}
+
+Ambos problemas pueden solucionarse si los interlocutores no se
+comunican directamente, sino que envían una única copia de su stream a
+un servidor instalado en la red y reciben de él una única copia del
+stream resultante de la mezcla de todos los stream que llegan a dicho
+servidor. Dicho servidor funciona, básicament, como un mezclador de
+audio y, lo denominaremos, por tanto, mixerTM. En la
+Figura~\ref{fig:comparativa} se muestra un ejemplo que muestra, para 3
+interlocutores, cómo serían los flujos de datos entre los diferentes
+intercomunicadores con y sin y el mezclador. Como puede verse, cuando
+no existe el mezclador (izquierda), cada intercomunicador (que en
+realidad serían dos instancias de intercomTM, ejecutándose en
+paralelo) debe enviar dos copias del stream, y también recibe dos
+copias. Con el mezclador (derecha), cada intercomunicador (que ahora
+sí es una única instancia de intercomTM) envía una única copia y
+recibe una sola copia. Es el mezcador quien se encarga de recibir
+todos los streams, mezclarlos, y reenviarlos a cada uno de los
+intercomunicadores.
 
 \section{Fases de desarrollo y estimación de su coste temporal}
 \label{sec:fases}
@@ -126,9 +149,7 @@ la Figura~\ref{fig:temporizacion}):
     intercomTM, comprendiendo los algoritmos que utiliza (60 h).
   \item {APROVISIONAMIENTO}: Instalación y configuración del entorno
     de desarrollo y ejecución. Básicamente, Linux y Python (10h).
-  \item {IMPLEMENTACIÓN}: Implementación de la versión paralela de
-    intercomTM, en sucesivas versiones con niveles incrementales de
-    paralelismo (60h).
+  \item {IMPLEMENTACIÓN}: Implementación del mezclador (60h).
   \item {EVALUACIÓN}: Evaluación de la solución y cuantificación del
     grado de consecución de los objetivos (30h).
   \item {REDACCIÓN}: Redacción de la memoria (30h).
@@ -154,11 +175,13 @@ la Figura~\ref{fig:temporizacion}):
 
 \section{Requerimientos}
 \label{sec:requerimientos}
-Los requerimientos de la versión paralela de intercomTM son:
+Los requerimientos del mezclador son:
 
 \begin{itemize}
 \item Generales:
   \begin{enumerate}
+  \item El lenguaje de programación será Python, y en concreto, se
+    hará uso de la bilioteca multiprocessing~\cite{multiprocessing}.
   \item El estilo de programación debe seguir la norma
     PEP-8~\cite{PEP8}.
   \item El idioma usado, tanto para la definición de objetos, métodos,
@@ -172,29 +195,32 @@ Los requerimientos de la versión paralela de intercomTM son:
   \end{enumerate}
 \item Específicos:
   \begin{enumerate}
-  \item Deberán aprovecharse tantos cores como sea posible, siempre y
-    cuando esto no genere un decremento del desempeño.
-  \item Mediante experimentación, deberá comprobarse que la versión
-    paralela genera una carga máxima en los cores inferior a la carga
-    que genera la versión secuencial (que sólo corre en un core), para
-    un determinado conjunto (que puede cambiar) de parámetros de
-    funcionamiento.
+  \item El mezclador usará paralelismo de
+    tareas~\cite{pacheco2011introduction} (un proceso por cada
+    intercomunicador conectado, más otro proceso que realizará la
+    mezcla y realizará el envío).
+  \item El mezclador realizará control de flujo de datos con los
+    intercomunicadores conectados.
   \end{enumerate}
 \end{itemize}
 
 \section{Resultados esperados}
 \label{sec:resultados}
-Principalmente, se espera obtener la versión paralela de intercomTM.
-Este deberá satisfacer los requerimientos (en definitiva, los
-objetivos) planteados anteriormente, que se vefificarán mediante
-experimentación.  Se definirán diferentes configuraciones típicas (por
-ejemplo, (1) transmisión de audio mono, baja tasa de muestreo de 8000
-Hz, y bajo ancho de banda (2) tranmisión estereo, alta tasa de
-muestreo 48000 Hz, y ancho de banda no limitante) y se comprobará que
-los requerimientos específicos se consiguen en la solución encontrada.
+De este trabajo debería resultar una implementación del mezclador
+mixerTM, que debería satisfacer los requerimientos plantados. Se
+llevarán a cabo una serie de experimentos para verificar su
+funcionamiento correcto bajo diferentes cargas de trabajo, variando
+las tasas de muestreo, el número de canales, el ancho de banda
+disponible, el número de intercomunicadores conectados, etc.
 
 \section{Conclusiones esperadas}
 \label{sec:conclusiones}
+Tras un análisis de los resultados obtenidos, debería determinarse las
+características básicas (cantidad de memoria, número de cores, ancho
+de banda disponible, etc.) del host en el que corre el
+mezclador. También debería concluirse si el uso del mezclador influye
+significativamente en la latencia.
+
 Básicamente, se tratará de concluir si el modelo de paralelismo de
 datos proporcionado por Python a través de su API
 multiprocessing~\cite{multiprocessing} es adacuado (o no) para

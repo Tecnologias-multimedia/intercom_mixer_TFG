@@ -1,5 +1,5 @@
 include ../Makefile
 
-PDFs = tecnico.pdf
+PDFs = comparativa.pdf tecnico.pdf
 
 default:	$(PDFs)
