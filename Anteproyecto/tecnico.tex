@@ -61,7 +61,7 @@
 \vspace{0.95cm}
 \begin{tabular}{ll}
   ~~~~~~~~~ & Paralelismo de Tareas, Audio, Intercomunicador, \\
-  ~~~~~~~~~ & Procesamiento en Tiempo Real
+  ~~~~~~~~~ & Mezclador, Procesamiento en Tiempo Real
 \end{tabular}
 
 \clearpage
@@ -99,13 +99,13 @@ El objetivo de este TFG es diseñar e implementar un mezclador de audio
 para el intercomunicador intercomTM. Con la funcionalidad actual es
 posible que dos o más usuarios de intercomTM puedan comunicarse entre
 sí, lanzando varias instancias de intercomTM, una para cada posible
-pareja de usuarios. Sin embargo, esta solución presentaría dos
+pareja de usuarios. Sin embargo, esta solución presenta dos
 inconvenientes:
 \begin{enumerate}
-\item El sistema operativo debería permitir que al menos dos instancias
+\item El sistema operativo debe permitir que al menos dos instancias
   de intercomTM usen el hardware de audio simultaneamente. Este es un
   requerimiento que no siempre puede cumplirse.
-\item Los usuarios enviarían tantas copias del stream de audio como
+\item Los usuarios envían tantas copias del stream de audio como
   interlocutores hay en la red. Esto significa que la redundancia de
   datos en el enlace de salida de los usuarios de intercomTM podría
   ser alta.
@@ -113,7 +113,7 @@ inconvenientes:
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=5cm]{comparativa}
+    \includegraphics[width=\textwidth]{comparativa}
   \end{center}
   \caption{Flujo de datos entre intercomunicadores ($I$), cuando no se
     usa (izquerda) y sí se usa (derecha) un mezclador ($M$).}
@@ -124,8 +124,8 @@ Ambos problemas pueden solucionarse si los interlocutores no se
 comunican directamente, sino que envían una única copia de su stream a
 un servidor instalado en la red y reciben de él una única copia del
 stream resultante de la mezcla de todos los stream que llegan a dicho
-servidor. Dicho servidor funciona, básicament, como un mezclador de
-audio y, lo denominaremos, por tanto, mixerTM. En la
+servidor. Dicho servidor funciona, básicamente, como un mezclador de
+audio, y lo denominaremos por tanto, mixerTM. En la
 Figura~\ref{fig:comparativa} se muestra un ejemplo que muestra, para 3
 interlocutores, cómo serían los flujos de datos entre los diferentes
 intercomunicadores con y sin y el mezclador. Como puede verse, cuando

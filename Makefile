@@ -33,5 +33,7 @@ EOF > /tmp/$*_raw.log
 	pdfcrop /tmp/$*_raw.pdf /tmp/$*_crop.pdf >> /tmp/$*_raw.log
 	mv /tmp/$*_crop.pdf $*.pdf
 
+default: $(PDFs)
+
 clean:
 	rm -f $(PDFs) *.aux *.log *.bbl *.blg *.out
